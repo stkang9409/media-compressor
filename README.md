@@ -14,15 +14,9 @@ A powerful cross-platform desktop application for compressing images and videos 
 
 ## 📥 Download
 
-Download the latest version for your operating system:
+### [⬇️ Download Latest Release](https://github.com/stkang9409/media-compressor/releases/latest)
 
-| Platform              | Download                                                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Windows               | [Download .exe](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_0.1.0_x64-setup.exe)       |
-| macOS (Intel)         | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_0.1.0_x64.dmg)             |
-| macOS (Apple Silicon) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_0.1.0_aarch64.dmg)         |
-| Linux (AppImage)      | [Download .AppImage](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_0.1.0_amd64.AppImage) |
-| Linux (deb)           | [Download .deb](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_0.1.0_amd64.deb)           |
+Visit the releases page to download the appropriate version for your operating system. The release page includes detailed instructions for each platform.
 
 ## 🚀 Quick Start
 

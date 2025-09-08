@@ -58,23 +58,70 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Media Compressor ${{ github.ref_name }}'
           releaseBody: |
-            ## Download Links
+            ## 📥 다운로드 가이드 / Download Guide
             
-            | Platform | Download |
-            |----------|----------|
-            | Windows | [media-compressor_x64-setup.exe](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_x64-setup.exe) |
-            | macOS (Intel) | [media-compressor_x64.dmg](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_x64.dmg) |
-            | macOS (Apple Silicon) | [media-compressor_aarch64.dmg](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_aarch64.dmg) |
-            | Linux (AppImage) | [media-compressor_amd64.AppImage](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_amd64.AppImage) |
-            | Linux (deb) | [media-compressor_amd64.deb](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_amd64.deb) |
+            ### 🪟 Windows
+            - **파일명**: `media-compressor_버전_x64-setup.exe`
+            - **설치방법**: 다운로드 후 실행하여 설치
+            - **예시**: `media-compressor_0.1.0_x64-setup.exe`
             
-            ## Features
-            - 🖼️ Image compression (JPEG, PNG, WebP)
-            - 🎥 Video compression with automatic FFmpeg download
-            - 🚀 Fast native performance
-            - 💾 Batch processing
+            ### 🍎 macOS
+            **Intel Mac (x64)**
+            - **파일명**: `media-compressor_버전_x64.dmg`
+            - **예시**: `media-compressor_0.1.0_x64.dmg`
             
-            See the [README](https://github.com/stkang9409/media-compressor#readme) for more information.
+            **Apple Silicon (M1/M2/M3)**
+            - **파일명**: `media-compressor_버전_aarch64.dmg`
+            - **예시**: `media-compressor_0.1.0_aarch64.dmg`
+            - **설치방법**: DMG 파일을 열고 앱을 Applications 폴더로 드래그
+            
+            ### 🐧 Linux
+            **AppImage (모든 배포판)**
+            - **파일명**: `media-compressor_버전_amd64.AppImage`
+            - **설치방법**: 
+              ```bash
+              chmod +x media-compressor_*.AppImage
+              ./media-compressor_*.AppImage
+              ```
+            
+            **Debian/Ubuntu (.deb)**
+            - **파일명**: `media-compressor_버전_amd64.deb`
+            - **설치방법**: 
+              ```bash
+              sudo dpkg -i media-compressor_*.deb
+              ```
+            
+            ---
+            
+            ## ✨ 주요 기능 / Features
+            - 🖼️ **이미지 압축**: JPEG, PNG, WebP 지원
+            - 🎥 **비디오 압축**: FFmpeg 자동 다운로드 기능 포함
+            - 🚀 **빠른 처리 속도**: Rust 기반 네이티브 성능
+            - 💾 **일괄 처리**: 여러 파일 동시 압축
+            - 🔄 **드래그 앤 드롭**: 간편한 파일 추가
+            
+            ## 🔧 문제 해결 / Troubleshooting
+            
+            ### macOS에서 "개발자를 확인할 수 없음" 오류
+            ```bash
+            # 터미널에서 실행:
+            xattr -cr /Applications/media-compressor.app
+            ```
+            
+            ### Linux에서 실행 권한 문제
+            ```bash
+            chmod +x media-compressor_*.AppImage
+            ```
+            
+            ### FFmpeg 관련
+            - 비디오 압축 시 FFmpeg이 필요합니다
+            - 앱이 자동으로 다운로드를 제안합니다
+            - 수동 설치: https://ffmpeg.org/download.html
+            
+            ## 📖 더 알아보기 / Learn More
+            - [사용 설명서](https://github.com/stkang9409/media-compressor#readme)
+            - [문제 신고](https://github.com/stkang9409/media-compressor/issues)
+            - [소스 코드](https://github.com/stkang9409/media-compressor)
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
