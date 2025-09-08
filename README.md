@@ -25,10 +25,23 @@ Visit the releases page to download the appropriate version for your operating s
 1. Download the appropriate version for your operating system from the links above
 2. Install the application:
    - **Windows**: Run the `.exe` installer
-   - **macOS**: Open the `.dmg` file and drag the app to Applications
+   - **macOS**: 
+     - Open the `.dmg` file and drag the app to Applications
+     - **Important**: First run requires security bypass (see below)
    - **Linux**:
      - AppImage: Make it executable with `chmod +x` and run
      - deb: Install with `sudo dpkg -i media-compressor_*.deb`
+
+#### macOS Security Notice
+
+Since the app is not notarized, macOS will show a security warning. To bypass:
+
+```bash
+# Remove security attributes from the app
+xattr -cr /Applications/media-compressor.app
+```
+
+Or right-click the app → "Open" → Click "Open" in the warning dialog.
 
 ### For Developers
 
