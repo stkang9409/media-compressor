@@ -7,29 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  create-release:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create-release.outputs.id }}
-      upload_url: ${{ steps.create-release.outputs.upload_url }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
   build-tauri:
-    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -79,11 +57,27 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Media Compressor ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseBody: |
+            ## Download Links
+            
+            | Platform | Download |
+            |----------|----------|
+            | Windows | [media-compressor_x64-setup.exe](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_x64-setup.exe) |
+            | macOS (Intel) | [media-compressor_x64.dmg](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_x64.dmg) |
+            | macOS (Apple Silicon) | [media-compressor_aarch64.dmg](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_aarch64.dmg) |
+            | Linux (AppImage) | [media-compressor_amd64.AppImage](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_amd64.AppImage) |
+            | Linux (deb) | [media-compressor_amd64.deb](https://github.com/stkang9409/media-compressor/releases/download/${{ github.ref_name }}/media-compressor_amd64.deb) |
+            
+            ## Features
+            - 🖼️ Image compression (JPEG, PNG, WebP)
+            - 🎥 Video compression with automatic FFmpeg download
+            - 🚀 Fast native performance
+            - 💾 Batch processing
+            
+            See the [README](https://github.com/stkang9409/media-compressor#readme) for more information.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-          releaseId: ${{ needs.create-release.outputs.release_id }}
 
   build-status:
     needs: build-tauri
