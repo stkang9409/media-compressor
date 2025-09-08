@@ -216,6 +216,38 @@ h1 {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+.ffmpeg-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.download-ffmpeg-btn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.download-ffmpeg-btn:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.download-ffmpeg-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .output-selector {
   display: flex;
   flex-direction: column;

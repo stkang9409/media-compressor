@@ -4,6 +4,9 @@ use std::process::Command;
 use serde::{Deserialize, Serialize};
 use image::{GenericImageView, imageops::FilterType, ImageFormat};
 
+mod ffmpeg_manager;
+use ffmpeg_manager::FFmpegManager;
+
 #[derive(Debug, Serialize, Deserialize)]
 struct FileInfo {
     size: u64,
@@ -68,6 +71,10 @@ async fn open_directory(path: String) -> Result<(), String> {
 
 #[tauri::command]
 async fn compress_video(input_path: String, output_path: Option<String>) -> Result<CompressionResult, String> {
+    // Ensure FFmpeg is available
+    let ffmpeg_manager = FFmpegManager::new();
+    let ffmpeg_path = ffmpeg_manager.ensure_ffmpeg().await?;
+    
     let input = Path::new(&input_path);
     
     if !input.exists() {
@@ -86,7 +93,7 @@ async fn compress_video(input_path: String, output_path: Option<String>) -> Resu
     let extension = input.extension().unwrap_or_default().to_str().unwrap_or("mp4");
     let output_file = output_dir.join(format!("{}_compressed.{}", file_name, extension));
     
-    let output = Command::new("ffmpeg")
+    let output = Command::new(&ffmpeg_path)
         .args(&[
             "-i", input_path.as_str(),
             "-c:v", "libx265",
@@ -227,6 +234,19 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
     }
 }
 
+#[tauri::command]
+async fn check_ffmpeg_status() -> Result<bool, String> {
+    let ffmpeg_manager = FFmpegManager::new();
+    Ok(ffmpeg_manager.is_ffmpeg_available() || ffmpeg_manager.is_system_ffmpeg_available())
+}
+
+#[tauri::command]
+async fn download_ffmpeg() -> Result<String, String> {
+    let ffmpeg_manager = FFmpegManager::new();
+    ffmpeg_manager.ensure_ffmpeg().await?;
+    Ok("FFmpeg downloaded successfully".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -239,7 +259,9 @@ pub fn run() {
             get_default_output_path,
             open_directory,
             compress_video,
-            compress_image
+            compress_image,
+            check_ffmpeg_status,
+            download_ffmpeg
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -16,13 +16,13 @@ A powerful cross-platform desktop application for compressing images and videos 
 
 Download the latest version for your operating system:
 
-| Platform              | Download                                                                                                                      |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Windows               | [Download .exe](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64-setup.exe)       |
-| macOS (Intel)         | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64.dmg)             |
-| macOS (Apple Silicon) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_aarch64.dmg)         |
-| Linux (AppImage)      | [Download .AppImage](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.AppImage) |
-| Linux (deb)           | [Download .deb](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.deb)           |
+| Platform              | Download                                                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Windows               | [Download .exe](https://github.com/stkang9409/media-compressor/releases/latest/tag/media-compressor_x64-setup.exe)       |
+| macOS (Intel)         | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/tag/media-compressor_x64.dmg)             |
+| macOS (Apple Silicon) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/tag/media-compressor_aarch64.dmg)         |
+| Linux (AppImage)      | [Download .AppImage](https://github.com/stkang9409/media-compressor/releases/latest/tag/media-compressor_amd64.AppImage) |
+| Linux (deb)           | [Download .deb](https://github.com/stkang9409/media-compressor/releases/latest/tag/media-compressor_amd64.deb)           |
 
 ## 🚀 Quick Start
 

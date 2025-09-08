@@ -20,25 +20,32 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputPath, setOutputPath] = useState<string>("");
   const [defaultOutputPath, setDefaultOutputPath] = useState<string>("");
+  const [ffmpegAvailable, setFfmpegAvailable] = useState<boolean | null>(null);
+  const [downloadingFfmpeg, setDownloadingFfmpeg] = useState(false);
 
-  // Setup default output directory
+  // Setup default output directory and check FFmpeg
   useEffect(() => {
-    const setupDefaultPath = async () => {
+    const setupApp = async () => {
       try {
-        // Use invoke to get home directory from Rust backend
+        // Get default path
         const defaultPath = await invoke<string>('get_default_output_path');
         setDefaultOutputPath(defaultPath);
         setOutputPath(defaultPath);
+        
+        // Check FFmpeg status
+        const ffmpegStatus = await invoke<boolean>('check_ffmpeg_status');
+        setFfmpegAvailable(ffmpegStatus);
       } catch (error) {
-        console.error('Error setting default path:', error);
+        console.error('Error during setup:', error);
         // Fallback to a simple default path
         const fallbackPath = "~/Downloads/compressed";
         setDefaultOutputPath(fallbackPath);
         setOutputPath(fallbackPath);
+        setFfmpegAvailable(false);
       }
     };
     
-    setupDefaultPath();
+    setupApp();
   }, []);
 
   // Setup Tauri file drop listener
@@ -164,8 +171,34 @@ function App() {
     }
   };
 
+  const downloadFfmpeg = async () => {
+    setDownloadingFfmpeg(true);
+    try {
+      await invoke('download_ffmpeg');
+      setFfmpegAvailable(true);
+    } catch (error) {
+      console.error('Error downloading FFmpeg:', error);
+      alert('Failed to download FFmpeg: ' + error);
+    } finally {
+      setDownloadingFfmpeg(false);
+    }
+  };
+
   const compressFiles = async () => {
     if (files.length === 0) return;
+    
+    // Check if we have video files and FFmpeg is not available
+    const hasVideoFiles = files.some(f => f.type === 'video');
+    if (hasVideoFiles && ffmpegAvailable === false) {
+      const shouldDownload = confirm('FFmpeg is required for video compression. Would you like to download it automatically?');
+      if (shouldDownload) {
+        await downloadFfmpeg();
+        if (!ffmpegAvailable) return;
+      } else {
+        alert('Video compression requires FFmpeg. Please install it manually or allow automatic download.');
+        return;
+      }
+    }
     
     setIsProcessing(true);
     
@@ -282,6 +315,18 @@ function App() {
 
       {files.length > 0 && (
         <div className="controls">
+          {ffmpegAvailable === false && files.some(f => f.type === 'video') && (
+            <div className="ffmpeg-notice">
+              <span>⚠️ FFmpeg is required for video compression</span>
+              <button 
+                onClick={downloadFfmpeg} 
+                disabled={downloadingFfmpeg}
+                className="download-ffmpeg-btn"
+              >
+                {downloadingFfmpeg ? 'Downloading...' : 'Download FFmpeg'}
+              </button>
+            </div>
+          )}
           <div className="output-selector">
             <label>Output Directory:</label>
             <div className="directory-picker">
