@@ -16,13 +16,13 @@ A powerful cross-platform desktop application for compressing images and videos 
 
 Download the latest version for your operating system:
 
-| Platform | Download |
-|----------|----------|
-| Windows | [Download .exe](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64-setup.exe) |
-| macOS (Intel) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64.dmg) |
-| macOS (Apple Silicon) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_aarch64.dmg) |
-| Linux (AppImage) | [Download .AppImage](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.AppImage) |
-| Linux (deb) | [Download .deb](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.deb) |
+| Platform              | Download                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Windows               | [Download .exe](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64-setup.exe)       |
+| macOS (Intel)         | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_x64.dmg)             |
+| macOS (Apple Silicon) | [Download .dmg](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_aarch64.dmg)         |
+| Linux (AppImage)      | [Download .AppImage](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.AppImage) |
+| Linux (deb)           | [Download .deb](https://github.com/stkang9409/media-compressor/releases/latest/download/media-compressor_amd64.deb)           |
 
 ## 🚀 Quick Start
 
@@ -32,7 +32,7 @@ Download the latest version for your operating system:
 2. Install the application:
    - **Windows**: Run the `.exe` installer
    - **macOS**: Open the `.dmg` file and drag the app to Applications
-   - **Linux**: 
+   - **Linux**:
      - AppImage: Make it executable with `chmod +x` and run
      - deb: Install with `sudo dpkg -i media-compressor_*.deb`
 
@@ -82,6 +82,7 @@ npm run tauri build
 ## 📝 Configuration
 
 The app stores settings in:
+
 - **Windows**: `%APPDATA%/media-compressor`
 - **macOS**: `~/Library/Application Support/media-compressor`
 - **Linux**: `~/.config/media-compressor`
