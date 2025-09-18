@@ -22,6 +22,8 @@ function App() {
   const [defaultOutputPath, setDefaultOutputPath] = useState<string>("");
   const [ffmpegAvailable, setFfmpegAvailable] = useState<boolean | null>(null);
   const [downloadingFfmpeg, setDownloadingFfmpeg] = useState(false);
+  const [currentProcessingFile, setCurrentProcessingFile] = useState<string>("");
+  const [processedCount, setProcessedCount] = useState(0);
 
   // Setup default output directory and check FFmpeg
   useEffect(() => {
@@ -217,10 +219,13 @@ function App() {
     }
     
     setIsProcessing(true);
+    setProcessedCount(0);
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.status === 'completed') continue;
+      
+      setCurrentProcessingFile(file.name);
       
       setFiles(prev => {
         const updated = [...prev];
@@ -247,6 +252,8 @@ function App() {
           };
           return updated;
         });
+        
+        setProcessedCount(prev => prev + 1);
       } catch (error) {
         setFiles(prev => {
           const updated = [...prev];
@@ -258,6 +265,7 @@ function App() {
     }
     
     setIsProcessing(false);
+    setCurrentProcessingFile("");
   };
 
   const clearFiles = () => {
@@ -277,16 +285,42 @@ function App() {
       <h1>Media Compressor</h1>
       <p className="subtitle">Drag and drop videos, images, or folders to compress</p>
 
-      <div
-        className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-        onClick={selectFiles}
-      >
-        <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-        <p>Drop files or folders here, or click to select</p>
-        <p className="file-types">Supports MP4, AVI, MOV, MKV, JPG, PNG, GIF, WebP</p>
-      </div>
+      {isProcessing ? (
+        <div className="drop-zone processing">
+          <div className="processing-content">
+            <h3 className="processing-title">Compressing Files</h3>
+            
+            <div className="progress-stats">
+              <span className="progress-percentage">{Math.round((processedCount / files.length) * 100)}%</span>
+              <span className="progress-count">({processedCount} of {files.length} completed)</span>
+            </div>
+            
+            <div className="progress-bar-container">
+              <div className="progress-bar-bg">
+                <div 
+                  className="progress-bar-fill" 
+                  style={{ width: `${(processedCount / files.length) * 100}%` }}
+                />
+              </div>
+            </div>
+            
+            <div className="current-file">
+              <span className="current-file-name">{currentProcessingFile}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+          onClick={selectFiles}
+        >
+          <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p>Drop files or folders here, or click to select</p>
+          <p className="file-types">Supports MP4, AVI, MOV, MKV, JPG, PNG, GIF, WebP</p>
+        </div>
+      )}
 
       {files.length > 0 && (
         <div className="file-list">
@@ -330,9 +364,9 @@ function App() {
       )}
 
       {files.length > 0 && (
-        <div className="controls">
+        <>
           {ffmpegAvailable === false && files.some(f => f.type === 'video') && (
-            <div className="ffmpeg-notice">
+            <div className="ffmpeg-notice-banner">
               <span>⚠️ FFmpeg is required for video compression</span>
               <button 
                 onClick={downloadFfmpeg} 
@@ -343,32 +377,50 @@ function App() {
               </button>
             </div>
           )}
-          <div className="output-selector">
-            <label>Output Directory:</label>
-            <div className="directory-picker">
-              <input
-                type="text"
-                value={outputPath}
-                readOnly
-                className="output-input"
-                placeholder="Select output directory..."
-              />
-              <button onClick={selectOutputDirectory} className="browse-btn">
-                📁 Browse
+          <div className="floating-controls">
+            <div className="output-section">
+              <span className="path-label">Output:</span>
+              <div className="path-input-box" onClick={selectOutputDirectory}>
+                <svg className="folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                <span className="path-text" title={outputPath}>
+                  {outputPath || `${defaultOutputPath || '~/Downloads/compressed'}`}
+                </span>
+                <svg className="browse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 11l3-3 3 3M12 8v8"/>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                </svg>
+              </div>
+              <button 
+                onClick={openOutputDirectory} 
+                className="icon-btn"
+                title="Open output folder"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
               </button>
-              <button onClick={openOutputDirectory} className="open-btn">
-                📂 Open
+            </div>
+            
+            <div className="control-actions">
+              <button
+                onClick={compressFiles}
+                disabled={isProcessing || files.every(f => f.status === 'completed')}
+                className="compress-btn-primary"
+              >
+                {isProcessing ? (
+                  <>
+                    <span className="spinner"></span>
+                    Compressing...
+                  </>
+                ) : (
+                  <>Compress All ({files.filter(f => f.status !== 'completed').length})</>
+                )}
               </button>
             </div>
           </div>
-          <button
-            onClick={compressFiles}
-            disabled={isProcessing || files.every(f => f.status === 'completed')}
-            className="compress-btn"
-          >
-            {isProcessing ? 'Compressing...' : 'Compress All'}
-          </button>
-        </div>
+        </>
       )}
     </main>
   );
