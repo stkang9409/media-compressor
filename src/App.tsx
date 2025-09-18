@@ -85,9 +85,25 @@ function App() {
 
   const processFilePaths = useCallback(async (paths: string[]) => {
     console.log('Processing paths:', paths);
+    const allPaths: string[] = [];
+    
+    // Process each path - could be file or directory
+    for (const path of paths) {
+      try {
+        // Try to get directory files first
+        const dirFiles = await invoke<string[]>('get_directory_files', { dirPath: path });
+        console.log(`Found ${dirFiles.length} files in directory: ${path}`);
+        allPaths.push(...dirFiles);
+      } catch (error) {
+        // If it fails, it's probably a file, not a directory
+        console.log(`Path ${path} is not a directory or error occurred:`, error);
+        allPaths.push(path);
+      }
+    }
+    
     const newFiles: FileItem[] = [];
     
-    for (const path of paths) {
+    for (const path of allPaths) {
       const name = path.split('/').pop() || path.split('\\').pop() || '';
       const extension = name.split('.').pop()?.toLowerCase();
       const isVideo = ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv'].includes(extension || '');
@@ -259,7 +275,7 @@ function App() {
   return (
     <main className="container">
       <h1>Media Compressor</h1>
-      <p className="subtitle">Drag and drop videos or images to compress</p>
+      <p className="subtitle">Drag and drop videos, images, or folders to compress</p>
 
       <div
         className={`drop-zone ${isDragging ? 'dragging' : ''}`}
@@ -268,8 +284,8 @@ function App() {
         <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
-        <p>Drop files here or click to select</p>
-        <p className="file-types">Supports MP4, AVI, MOV, MKV, JPG, PNG, GIF</p>
+        <p>Drop files or folders here, or click to select</p>
+        <p className="file-types">Supports MP4, AVI, MOV, MKV, JPG, PNG, GIF, WebP</p>
       </div>
 
       {files.length > 0 && (

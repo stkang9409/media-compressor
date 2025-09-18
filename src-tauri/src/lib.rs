@@ -1,8 +1,8 @@
+use image::{imageops::FilterType, GenericImageView, ImageFormat};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use serde::{Deserialize, Serialize};
-use image::{GenericImageView, imageops::FilterType, ImageFormat};
 
 mod ffmpeg_manager;
 use ffmpeg_manager::FFmpegManager;
@@ -34,9 +34,8 @@ async fn create_output_dir(path: String) -> Result<(), String> {
 
 #[tauri::command]
 async fn get_default_output_path() -> Result<String, String> {
-    let home = std::env::var("HOME").unwrap_or_else(|_| {
-        std::env::var("USERPROFILE").unwrap_or_else(|_| ".".to_string())
-    });
+    let home = std::env::var("HOME")
+        .unwrap_or_else(|_| std::env::var("USERPROFILE").unwrap_or_else(|_| ".".to_string()));
     Ok(format!("{}/Downloads/compressed", home))
 }
 
@@ -49,7 +48,7 @@ async fn open_directory(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| e.to_string())?;
     }
-    
+
     #[cfg(target_os = "windows")]
     {
         Command::new("explorer")
@@ -57,7 +56,7 @@ async fn open_directory(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| e.to_string())?;
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         Command::new("xdg-open")
@@ -65,60 +64,83 @@ async fn open_directory(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| e.to_string())?;
     }
-    
+
     Ok(())
 }
 
 #[tauri::command]
-async fn compress_video(input_path: String, output_path: Option<String>) -> Result<CompressionResult, String> {
+async fn compress_video(
+    input_path: String,
+    output_path: Option<String>,
+) -> Result<CompressionResult, String> {
     // Ensure FFmpeg is available
     let ffmpeg_manager = FFmpegManager::new();
     let ffmpeg_path = ffmpeg_manager.ensure_ffmpeg().await?;
-    
+
     let input = Path::new(&input_path);
-    
+
     if !input.exists() {
         return Err("Input file does not exist".to_string());
     }
-    
+
     let output_dir = if let Some(dir) = output_path {
         Path::new(&dir).to_path_buf()
     } else {
         input.parent().unwrap().join("compressed")
     };
-    
+
     fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
-    
+
     let file_name = input.file_stem().unwrap().to_str().unwrap();
-    let extension = input.extension().unwrap_or_default().to_str().unwrap_or("mp4");
-    let output_file = output_dir.join(format!("{}_compressed.{}", file_name, extension));
-    
+    let extension = input
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or("mp4");
+    let output_file = output_dir.join(format!("{}.{}", file_name, extension));
+
     let output = Command::new(&ffmpeg_path)
         .args(&[
-            "-i", input_path.as_str(),
-            "-c:v", "libx265",
-            "-crf", "28",
-            "-preset", "medium",
-            "-c:a", "aac",
-            "-b:a", "128k",
-            "-movflags", "+faststart",
+            "-i",
+            input_path.as_str(),
+            "-c:v",
+            "libx264",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.0",
+            "-pix_fmt",
+            "yuv420p",
+            "-crf",
+            "23",
+            "-preset",
+            "medium",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "128k",
+            "-movflags",
+            "+faststart",
             "-y",
             output_file.to_str().unwrap(),
         ])
         .output();
-    
+
     match output {
         Ok(result) => {
             if !result.status.success() {
                 let stderr = String::from_utf8_lossy(&result.stderr);
-                
+
                 if stderr.contains("ffmpeg: not found") || stderr.contains("command not found") {
-                    return Err("ffmpeg is not installed. Please install ffmpeg to compress videos.".to_string());
+                    return Err(
+                        "ffmpeg is not installed. Please install ffmpeg to compress videos."
+                            .to_string(),
+                    );
                 }
-                
+
                 return Err(format!("Video compression failed: {}", stderr));
             }
-            
+
             let metadata = fs::metadata(&output_file).map_err(|e| e.to_string())?;
             Ok(CompressionResult {
                 compressed_size: metadata.len(),
@@ -126,7 +148,10 @@ async fn compress_video(input_path: String, output_path: Option<String>) -> Resu
         }
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
-                Err("ffmpeg is not installed. Please install ffmpeg to compress videos.".to_string())
+                Err(
+                    "ffmpeg is not installed. Please install ffmpeg to compress videos."
+                        .to_string(),
+                )
             } else {
                 Err(format!("Failed to run ffmpeg: {}", e))
             }
@@ -135,32 +160,39 @@ async fn compress_video(input_path: String, output_path: Option<String>) -> Resu
 }
 
 #[tauri::command]
-async fn compress_image(input_path: String, output_path: Option<String>) -> Result<CompressionResult, String> {
+async fn compress_image(
+    input_path: String,
+    output_path: Option<String>,
+) -> Result<CompressionResult, String> {
     let input = Path::new(&input_path);
-    
+
     if !input.exists() {
         return Err("Input file does not exist".to_string());
     }
-    
+
     // Get original file size
     let original_size = fs::metadata(&input_path).map_err(|e| e.to_string())?.len();
-    
+
     let img = image::open(&input_path).map_err(|e| e.to_string())?;
-    
+
     let output_dir = if let Some(dir) = output_path {
         Path::new(&dir).to_path_buf()
     } else {
         input.parent().unwrap().join("compressed")
     };
-    
+
     fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
-    
+
     let file_name = input.file_stem().unwrap().to_str().unwrap();
-    let original_extension = input.extension().unwrap_or_default().to_str().unwrap_or("jpg");
-    
+    let original_extension = input
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or("jpg");
+
     let (width, height) = img.dimensions();
     let max_dimension = 2048;
-    
+
     // Resize only if image is larger than max dimension
     let resized = if width > max_dimension || height > max_dimension {
         let ratio = (max_dimension as f32) / (width.max(height) as f32);
@@ -170,7 +202,7 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
     } else {
         img
     };
-    
+
     // For WebP and other already compressed formats, convert to JPEG if it would be smaller
     let (output_extension, output_format) = match original_extension.to_lowercase().as_str() {
         "webp" | "avif" => {
@@ -189,9 +221,9 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
         "bmp" => ("jpg", ImageFormat::Jpeg),
         _ => ("jpg", ImageFormat::Jpeg),
     };
-    
-    let output_file = output_dir.join(format!("{}_compressed.{}", file_name, output_extension));
-    
+
+    let output_file = output_dir.join(format!("{}.{}", file_name, output_extension));
+
     // Save with quality optimization
     match output_format {
         ImageFormat::Jpeg => {
@@ -199,9 +231,11 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
             let rgb_image = resized.to_rgb8();
             let mut jpeg_encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
                 std::fs::File::create(&output_file).map_err(|e| e.to_string())?,
-                85
+                85,
             );
-            jpeg_encoder.encode_image(&rgb_image).map_err(|e| e.to_string())?;
+            jpeg_encoder
+                .encode_image(&rgb_image)
+                .map_err(|e| e.to_string())?;
         }
         ImageFormat::Png => {
             // Use PNG with compression
@@ -209,17 +243,19 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
             let encoder = image::codecs::png::PngEncoder::new_with_quality(
                 output,
                 image::codecs::png::CompressionType::Best,
-                image::codecs::png::FilterType::Adaptive
+                image::codecs::png::FilterType::Adaptive,
             );
-            resized.write_with_encoder(encoder).map_err(|e| e.to_string())?;
+            resized
+                .write_with_encoder(encoder)
+                .map_err(|e| e.to_string())?;
         }
         _ => {
             resized.save(&output_file).map_err(|e| e.to_string())?;
         }
     }
-    
+
     let compressed_size = fs::metadata(&output_file).map_err(|e| e.to_string())?.len();
-    
+
     // If compressed is larger than original, just copy the original
     if compressed_size >= original_size {
         fs::copy(&input_path, &output_file).map_err(|e| e.to_string())?;
@@ -228,10 +264,56 @@ async fn compress_image(input_path: String, output_path: Option<String>) -> Resu
             compressed_size: final_size,
         })
     } else {
-        Ok(CompressionResult {
-            compressed_size,
-        })
+        Ok(CompressionResult { compressed_size })
     }
+}
+
+#[tauri::command]
+async fn get_directory_files(dir_path: String) -> Result<Vec<String>, String> {
+    let path = Path::new(&dir_path);
+
+    if !path.exists() {
+        return Err("Directory does not exist".to_string());
+    }
+
+    if !path.is_dir() {
+        return Err("Path is not a directory".to_string());
+    }
+
+    let mut files = Vec::new();
+
+    // Supported extensions
+    let video_extensions = vec!["mp4", "avi", "mov", "mkv", "wmv", "flv"];
+    let image_extensions = vec!["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+
+    // Read directory contents (non-recursive)
+    let entries = fs::read_dir(path).map_err(|e| e.to_string())?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+
+        // Skip directories
+        if path.is_dir() {
+            continue;
+        }
+
+        // Check if file has a supported extension
+        if let Some(extension) = path.extension() {
+            if let Some(ext_str) = extension.to_str() {
+                let ext_lower = ext_str.to_lowercase();
+                if video_extensions.contains(&ext_lower.as_str())
+                    || image_extensions.contains(&ext_lower.as_str())
+                {
+                    if let Some(path_str) = path.to_str() {
+                        files.push(path_str.to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(files)
 }
 
 #[tauri::command]
@@ -260,6 +342,7 @@ pub fn run() {
             open_directory,
             compress_video,
             compress_image,
+            get_directory_files,
             check_ffmpeg_status,
             download_ffmpeg
         ])
